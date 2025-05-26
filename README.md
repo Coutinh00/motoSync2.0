@@ -2,6 +2,13 @@
 
 O MotoSync 2.0 é um aplicativo móvel desenvolvido para gerenciamento de frota de motocicletas, oferecendo uma solução completa para monitoramento e controle de veículos.
 
+- Rm551151 
+- Vinicius Murtinho Vicente
+- RM: 557107
+- Lucas Barreto Consentino
+- rm558515
+- Gustavo Bispo Cordeiro
+
 ## Funcionalidades Principais
 
 - **Dashboard Intuitivo**: Visualização rápida de estatísticas e status da frota
