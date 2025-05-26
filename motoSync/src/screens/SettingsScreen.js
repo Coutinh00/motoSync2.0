@@ -11,6 +11,7 @@ const SettingsScreen = ({ navigation }) => {
   const handleLogout = () => {
     console.log('Usuário deslogado');
     // Implementar a lógica de logout e navegação para a tela de Login
+    navigation.navigate('Login');
   };
 
   // Placeholder function for editing branch layout

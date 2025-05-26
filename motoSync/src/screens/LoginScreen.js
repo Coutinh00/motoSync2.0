@@ -1,14 +1,30 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
-const LoginScreen = () => {
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
     // Implementar lógica de login aqui
     console.log('Login pressed', { email, password });
+
+    console.log('Entered Email:', email);
+    console.log('Entered Password:', password);
+
+    // Credenciais de exemplo
+    const exampleEmail = 'teste@example.com';
+    const examplePassword = '123456';
+
+    if (email === exampleEmail && password === examplePassword) {
+      // Navegar para a tela principal
+      console.log('Login successful!');
+      navigation.navigate('Main');
+    } else {
+      // Exibir mensagem de erro
+      Alert.alert('Erro de Login', 'Email ou senha incorretos.');
+    }
   };
 
   return (
