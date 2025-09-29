@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Feather, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useFocusEffect } from '@react-navigation/native';
+import { motoService } from '../services/api';
+import { motoStorage } from '../services/storage';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const motosData = [
   { id: '1', plate: 'ABC-1234', model: 'Mottu POP', chassis: '2KDJ3LPD9', rfid: '1938402011', status: 'Prontas', location: 'Brasil, São Paulo', filial: 'Butantã-1' },
@@ -13,7 +16,76 @@ const motosData = [
 
 const FleetScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
+  const [motos, setMotos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const route = useRoute();
+
+  // Carregar motos ao montar o componente
+  useEffect(() => {
+    loadMotos();
+  }, []);
+
+  // Recarregar motos quando a tela ganha foco
+  useFocusEffect(
+    React.useCallback(() => {
+      loadMotos();
+    }, [])
+  );
+
+  const loadMotos = async () => {
+    setLoading(true);
+    try {
+      // Tentar carregar da API primeiro
+      const apiMotos = await motoService.getAll();
+      setMotos(apiMotos);
+      // Salvar no AsyncStorage para uso offline
+      await motoStorage.saveMotos(apiMotos);
+    } catch (error) {
+      console.log('Erro ao carregar da API, usando dados locais:', error.message);
+      // Se a API falhar, usar dados do AsyncStorage
+      const localMotos = await motoStorage.getMotos();
+      if (localMotos.length > 0) {
+        setMotos(localMotos);
+      } else {
+        // Se não houver dados locais, usar dados mock
+        setMotos(motosData);
+        await motoStorage.saveMotos(motosData);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadMotos();
+    setRefreshing(false);
+  };
+
+  const handleDeleteMoto = async (motoId) => {
+    Alert.alert(
+      'Confirmar Exclusão',
+      'Tem certeza que deseja excluir esta moto?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await motoService.delete(motoId);
+              await motoStorage.removeMoto(motoId);
+              setMotos(prev => prev.filter(moto => moto.id !== motoId));
+              Alert.alert('Sucesso', 'Moto excluída com sucesso!');
+            } catch (error) {
+              Alert.alert('Erro', 'Erro ao excluir moto: ' + error.message);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const renderMotoItem = ({ item }) => (
     <View style={styles.motoItem}>
@@ -29,9 +101,25 @@ const FleetScreen = ({ navigation }) => {
           <Feather name="map-pin" size={14} color="gray" />
           <Text style={styles.motoLocationText}>{item.location}\n{item.filial}</Text>
         </View>
-        <TouchableOpacity style={styles.verDetalhesButton} onPress={() => navigation.navigate('MotoDetails', { moto: item })}>
-          <Text style={styles.verDetalhesButtonText}>Ver detalhes</Text>
-        </TouchableOpacity>
+        <View style={styles.motoActions}>
+          <TouchableOpacity style={styles.verDetalhesButton} onPress={() => navigation.navigate('MotoDetails', { moto: item })}>
+            <Text style={styles.verDetalhesButtonText}>Ver detalhes</Text>
+          </TouchableOpacity>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity 
+              style={styles.editButton} 
+              onPress={() => navigation.navigate('EditMoto', { moto: item })}
+            >
+              <Feather name="edit" size={16} color="#007BFF" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.deleteButton} 
+              onPress={() => handleDeleteMoto(item.id)}
+            >
+              <Feather name="trash-2" size={16} color="#dc3545" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -110,10 +198,17 @@ const FleetScreen = ({ navigation }) => {
 
           {/* Moto List */}
           <FlatList
-            data={motosData}
+            data={motos}
             renderItem={renderMotoItem}
             keyExtractor={item => item.id}
             contentContainerStyle={styles.listContent}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Nenhuma moto encontrada</Text>
+              </View>
+            }
           />
 
           {/* Add Moto Button */}
@@ -122,6 +217,8 @@ const FleetScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+
+      <LoadingSpinner visible={loading} message="Carregando motos..." />
     </View>
   );
 };
@@ -289,6 +386,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 5,
+  },
+  motoActions: {
+    alignItems: 'flex-end',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    marginTop: 5,
+  },
+  editButton: {
+    padding: 5,
+    marginRight: 10,
+  },
+  deleteButton: {
+    padding: 5,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: 'gray',
+    textAlign: 'center',
   },
 });
 

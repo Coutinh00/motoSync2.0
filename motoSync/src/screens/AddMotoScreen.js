@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { motoService } from '../services/api';
+import { motoStorage } from '../services/storage';
+import { validateMoto } from '../services/validation';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const AddMotoScreen = ({ navigation }) => {
   const [plate, setPlate] = useState('');
@@ -11,11 +15,14 @@ const AddMotoScreen = ({ navigation }) => {
   const [location, setLocation] = useState('');
   const [filial, setFilial] = useState('');
   const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  const handleSaveMoto = () => {
-    // Implementar lógica para salvar a nova moto
-    const newMoto = {
-      id: Date.now().toString(), // Gerar um ID simples (melhorar em uma aplicação real)
+  const handleSaveMoto = async () => {
+    // Limpar erros anteriores
+    setErrors({});
+
+    const motoData = {
       plate,
       model,
       chassis,
@@ -25,10 +32,42 @@ const AddMotoScreen = ({ navigation }) => {
       filial,
       notes,
     };
-    console.log('Nova moto a ser salva:', newMoto);
-    // Aqui você chamaria uma função para adicionar a moto à lista na tela anterior
-    // navigation.navigate('Fleet', { newMoto: newMoto }); // Exemplo de como passar dados de volta
-    navigation.goBack(); // Voltar para a tela anterior após salvar (temporário)
+
+    // Validação dos campos
+    const validation = await validateMoto(motoData);
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Tentar salvar na API
+      const newMoto = await motoService.create(motoData);
+      
+      // Salvar no AsyncStorage também
+      await motoStorage.addMoto(newMoto);
+      
+      Alert.alert('Sucesso', 'Moto adicionada com sucesso!', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+    } catch (error) {
+      // Se a API falhar, salvar apenas localmente
+      const localMoto = {
+        id: Date.now().toString(),
+        ...motoData,
+        createdAt: new Date().toISOString(),
+      };
+      
+      await motoStorage.addMoto(localMoto);
+      
+      Alert.alert('Sucesso', 'Moto adicionada localmente!', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,26 +82,68 @@ const AddMotoScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.form}>
-        <Text style={styles.label}>Plate</Text>
-        <TextInput style={styles.input} value={plate} onChangeText={setPlate} />
+        <Text style={styles.label}>Placa *</Text>
+        <TextInput 
+          style={[styles.input, errors.plate && styles.inputError]} 
+          value={plate} 
+          onChangeText={setPlate}
+          placeholder="ABC-1234"
+        />
+        {errors.plate && <Text style={styles.errorText}>{errors.plate}</Text>}
 
-        <Text style={styles.label}>Model</Text>
-        <TextInput style={styles.input} value={model} onChangeText={setModel} />
+        <Text style={styles.label}>Modelo *</Text>
+        <TextInput 
+          style={[styles.input, errors.model && styles.inputError]} 
+          value={model} 
+          onChangeText={setModel}
+          placeholder="Mottu POP"
+        />
+        {errors.model && <Text style={styles.errorText}>{errors.model}</Text>}
 
-        <Text style={styles.label}>Chassis</Text>
-        <TextInput style={styles.input} value={chassis} onChangeText={setChassis} />
+        <Text style={styles.label}>Chassis *</Text>
+        <TextInput 
+          style={[styles.input, errors.chassis && styles.inputError]} 
+          value={chassis} 
+          onChangeText={setChassis}
+          placeholder="2KDJ3LPD9"
+        />
+        {errors.chassis && <Text style={styles.errorText}>{errors.chassis}</Text>}
 
-        <Text style={styles.label}>RFID Tag</Text>
-        <TextInput style={styles.input} value={rfid} onChangeText={setRfid} />
+        <Text style={styles.label}>RFID Tag *</Text>
+        <TextInput 
+          style={[styles.input, errors.rfid && styles.inputError]} 
+          value={rfid} 
+          onChangeText={setRfid}
+          placeholder="1938402011"
+        />
+        {errors.rfid && <Text style={styles.errorText}>{errors.rfid}</Text>}
 
-        <Text style={styles.label}>Status</Text>
-        <TextInput style={styles.input} value={status} onChangeText={setStatus} />
+        <Text style={styles.label}>Status *</Text>
+        <TextInput 
+          style={[styles.input, errors.status && styles.inputError]} 
+          value={status} 
+          onChangeText={setStatus}
+          placeholder="Prontas, Dano Leve, Dano Grave"
+        />
+        {errors.status && <Text style={styles.errorText}>{errors.status}</Text>}
 
-        <Text style={styles.label}>Local</Text>
-        <TextInput style={styles.input} value={location} onChangeText={setLocation} />
+        <Text style={styles.label}>Localização *</Text>
+        <TextInput 
+          style={[styles.input, errors.location && styles.inputError]} 
+          value={location} 
+          onChangeText={setLocation}
+          placeholder="Brasil, São Paulo"
+        />
+        {errors.location && <Text style={styles.errorText}>{errors.location}</Text>}
 
-        <Text style={styles.label}>Filial</Text>
-        <TextInput style={styles.input} value={filial} onChangeText={setFilial} />
+        <Text style={styles.label}>Filial *</Text>
+        <TextInput 
+          style={[styles.input, errors.filial && styles.inputError]} 
+          value={filial} 
+          onChangeText={setFilial}
+          placeholder="Butantã-1"
+        />
+        {errors.filial && <Text style={styles.errorText}>{errors.filial}</Text>}
 
         <Text style={styles.label}>Notas</Text>
         <TextInput
@@ -71,12 +152,21 @@ const AddMotoScreen = ({ navigation }) => {
           onChangeText={setNotes}
           multiline
           numberOfLines={4}
+          placeholder="Observações adicionais..."
         />
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveMoto}>
-          <Text style={styles.saveButtonText}>Salvar moto</Text>
+        <TouchableOpacity 
+          style={[styles.saveButton, loading && styles.saveButtonDisabled]} 
+          onPress={handleSaveMoto}
+          disabled={loading}
+        >
+          <Text style={styles.saveButtonText}>
+            {loading ? 'Salvando...' : 'Salvar moto'}
+          </Text>
         </TouchableOpacity>
       </View>
+
+      <LoadingSpinner visible={loading} message="Salvando moto..." />
     </ScrollView>
   );
 };
@@ -132,6 +222,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  inputError: {
+    borderColor: '#dc3545',
+    borderWidth: 2,
+  },
+  errorText: {
+    color: '#dc3545',
+    fontSize: 12,
+    marginTop: -10,
+    marginBottom: 10,
+    marginLeft: 5,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#ccc',
   },
 });
 

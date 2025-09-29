@@ -17,7 +17,7 @@ const SettingsScreen = ({ navigation }) => {
   // Placeholder function for editing branch layout
   const handleEditLayout = () => {
     console.log('Editar layout da filial');
-    // Implementar navegação para a tela de edição de layout da filial
+    navigation.navigate('CreateBranchLayout');
   };
 
   return (

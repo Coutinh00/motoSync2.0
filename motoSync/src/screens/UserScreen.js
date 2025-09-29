@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Feather, AntDesign } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { userService } from '../services/api';
+import { userListStorage } from '../services/storage';
+import { syncUsers, syncUser } from '../services/syncService';
+import { SyncStatus } from '../components';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const usersData = [
   { id: '1', name: 'Alex Silva', email: 'alex.silva@email.com', cpf: '123.456.789-00', phone: '(11) 91234-5678', filial: 'Butantã-1', status: 'Ativo', role: 'Usuário' },
@@ -10,6 +16,73 @@ const usersData = [
 
 const UserScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Carregar usuários ao montar o componente
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // Recarregar usuários quando a tela ganha foco
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUsers();
+    }, [])
+  );
+
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      // Usar serviço de sincronização
+      const syncedUsers = await syncUsers();
+      setUsers(syncedUsers);
+    } catch (error) {
+      console.log('Erro na sincronização, usando dados locais:', error.message);
+      // Se a sincronização falhar, usar dados do AsyncStorage
+      const localUsers = await userListStorage.getUsers();
+      if (localUsers.length > 0) {
+        setUsers(localUsers);
+      } else {
+        // Se não houver dados locais, usar dados mock
+        setUsers(usersData);
+        await userListStorage.saveUsers(usersData);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadUsers();
+    setRefreshing(false);
+  };
+
+  const handleDeleteUser = async (userId) => {
+    Alert.alert(
+      'Confirmar Exclusão',
+      'Tem certeza que deseja excluir este usuário?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await userService.delete(userId);
+              await userListStorage.removeUser(userId);
+              setUsers(prev => prev.filter(user => user.id !== userId));
+              Alert.alert('Sucesso', 'Usuário excluído com sucesso!');
+            } catch (error) {
+              Alert.alert('Erro', 'Erro ao excluir usuário: ' + error.message);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const renderUserItem = ({ item }) => (
     <View style={styles.userItem}>
@@ -30,9 +103,20 @@ const UserScreen = ({ navigation }) => {
             {item.status === 'Pendente' && <Text style={[styles.statusBadge, styles.statusPendente]}>{item.status}</Text>}
              {item.role === 'Admin' && <Text style={[styles.statusBadge, styles.roleAdmin]}>{item.role}</Text>}
          </View>
-        <TouchableOpacity style={styles.editButton} onPress={() => console.log('Editar usuário:', item.id)}>
-          <Text style={styles.editButtonText}>Editar</Text>
-        </TouchableOpacity>
+        <View style={styles.userActions}>
+          <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={() => navigation.navigate('EditUser', { user: item })}
+          >
+            <Text style={styles.editButtonText}>Editar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.deleteButton} 
+            onPress={() => handleDeleteUser(item.id)}
+          >
+            <Feather name="trash-2" size={16} color="#dc3545" />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -59,18 +143,37 @@ const UserScreen = ({ navigation }) => {
         />
       </View>
 
+      {/* Sync Status */}
+      <SyncStatus 
+        onSync={(result) => {
+          if (result.success) {
+            loadUsers(); // Recarregar usuários após sincronização
+          }
+        }}
+        style={styles.syncStatus}
+      />
+
       {/* User List */}
       <FlatList
-        data={usersData}
+        data={users}
         renderItem={renderUserItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Nenhum usuário encontrado</Text>
+          </View>
+        }
       />
 
       {/* Add User Button */}
-      <TouchableOpacity style={styles.addButton} onPress={() => console.log('Adicionar usuário')}>
+      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddUser')}>
         <AntDesign name="plus" size={24} color="white" />
       </TouchableOpacity>
+
+      <LoadingSpinner visible={loading} message="Carregando usuários..." />
     </View>
   );
 };
@@ -188,6 +291,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
+  },
+  userActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    padding: 5,
+    marginLeft: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: 'gray',
+    textAlign: 'center',
+  },
+  syncStatus: {
+    marginHorizontal: 10,
+    marginBottom: 10,
   },
 });
 

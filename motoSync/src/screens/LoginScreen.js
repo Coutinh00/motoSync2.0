@@ -1,85 +1,126 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Alert } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { authService } from '../services/api';
+import { userStorage } from '../services/storage';
+import { validateLogin } from '../services/validation';
+import { useTheme } from '../contexts/ThemeContext';
+import { Button, Input, Card, Header } from '../components';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const theme = useTheme();
 
-  const handleLogin = () => {
-    // Implementar lógica de login aqui
-    console.log('Login pressed', { email, password });
+  const handleLogin = async () => {
+    // Limpar erros anteriores
+    setErrors({});
 
-    console.log('Entered Email:', email);
-    console.log('Entered Password:', password);
+    // Validação dos campos
+    const validation = validateLogin(email, password);
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      return;
+    }
 
-    // Credenciais de exemplo
-    const exampleEmail = 'teste@example.com';
-    const examplePassword = '123456';
+    setLoading(true);
 
-    if (email === exampleEmail && password === examplePassword) {
+    try {
+      // Tentar fazer login via API
+      const response = await authService.login(email, password);
+      
+      // Salvar dados do usuário e token no AsyncStorage
+      await userStorage.saveUserData(response.user);
+      await userStorage.saveToken(response.token);
+      
       // Navegar para a tela principal
-      console.log('Login successful!');
       navigation.navigate('Main');
-    } else {
-      // Exibir mensagem de erro
-      Alert.alert('Erro de Login', 'Email ou senha incorretos.');
+    } catch (error) {
+      // Se a API falhar, usar credenciais de exemplo para demonstração
+      const exampleEmail = 'teste@example.com';
+      const examplePassword = '123456';
+
+      if (email === exampleEmail && password === examplePassword) {
+        // Simular dados do usuário para demonstração
+        const mockUser = {
+          id: '1',
+          name: 'Usuário Teste',
+          email: email,
+          role: 'Admin',
+          filial: 'Butantã-1'
+        };
+
+        await userStorage.saveUserData(mockUser);
+        await userStorage.saveToken('mock_token_123');
+        
+        navigation.navigate('Main');
+      } else {
+        Alert.alert('Erro de Login', 'Email ou senha incorretos. Tente: teste@example.com / 123456');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header - Placeholder for MotoSync logo and menu */}
-      <View style={styles.header}>
-        {/* Replace with actual logo image */}
-        <Text style={styles.headerText}>🏍️ MotoSync</Text>
-        {/* Menu Icon */}
-        <Feather name="menu" size={24} color="black" />
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
+      {/* Header */}
+      <Header
+        title="🏍️ MotoSync"
+        rightIcon={<Feather name="menu" size={24} color={theme.colors.text.primary} />}
+      />
 
       <View style={styles.welcomeSection}>
-        <Text style={styles.welcomeTitle}>Bem vindo de volta</Text>
-        <Text style={styles.welcomeSubtitle}>Acesse sua conta</Text>
+        <Text style={[theme.text.title, styles.welcomeTitle]}>Bem vindo de volta</Text>
+        <Text style={[theme.text.subtitle, styles.welcomeSubtitle]}>Acesse sua conta</Text>
       </View>
 
-      <View style={styles.formSection}>
-        <Text style={styles.label}>Email</Text>
-        <View style={styles.inputContainer}>
-          <MaterialCommunityIcons name="email-outline" size={20} color="gray" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Digite seu e-mail"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
+      <Card style={styles.formCard}>
+        <Input
+          label="Email"
+          placeholder="Digite seu e-mail"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          error={errors.email}
+          required
+          leftIcon={<MaterialCommunityIcons name="email-outline" size={20} color={theme.colors.text.tertiary} />}
+        />
 
-        <Text style={styles.label}>Senha</Text>
-        <View style={styles.inputContainer}>
-          <Feather name="help-circle" size={20} color="gray" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Digite sua senha"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
+        <Input
+          label="Senha"
+          placeholder="Digite sua senha"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          error={errors.password}
+          required
+          leftIcon={<Feather name="lock" size={20} color={theme.colors.text.tertiary} />}
+        />
 
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Entrar</Text>
-        </TouchableOpacity>
-      </View>
+        <Button
+          title={loading ? 'Entrando...' : 'Entrar'}
+          onPress={handleLogin}
+          disabled={loading}
+          variant={loading ? 'disabled' : 'primary'}
+          size="large"
+          style={styles.loginButton}
+        />
+      </Card>
 
       <View style={styles.footerSection}>
         <TouchableOpacity>
-          <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
+          <Text style={[theme.text.link, styles.forgotPasswordText]}>Esqueceu sua senha?</Text>
         </TouchableOpacity>
-        <Text style={styles.noAccountText}>Não tem uma conta? Contate um</Text>
-        <Text style={styles.noAccountText}>administrador.</Text>
+        <Text style={[theme.text.secondary, styles.noAccountText]}>Não tem uma conta? Contate um</Text>
+        <Text style={[theme.text.secondary, styles.noAccountText]}>administrador.</Text>
       </View>
+
+      <LoadingSpinner visible={loading} message="Fazendo login..." />
     </SafeAreaView>
   );
 };
@@ -87,82 +128,31 @@ const LoginScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
     padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  headerText: {
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   welcomeSection: {
     alignItems: 'center',
     marginBottom: 40,
   },
   welcomeTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
     marginBottom: 5,
   },
   welcomeSubtitle: {
-    fontSize: 16,
-    color: 'gray',
+    // Estilos aplicados via theme.text.subtitle
   },
-  formSection: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
+  formCard: {
     marginBottom: 30,
   },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-    fontWeight: 'bold',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 15,
-  },
-  icon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-  },
   loginButton: {
-    backgroundColor: '#007BFF',
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    marginTop: 20,
   },
   footerSection: {
     alignItems: 'center',
   },
   forgotPasswordText: {
-    color: '#007BFF',
-    fontSize: 16,
     marginBottom: 20,
   },
   noAccountText: {
-    fontSize: 14,
-    color: 'gray',
     textAlign: 'center',
   },
 });

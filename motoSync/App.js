@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import { ThemeProvider } from './src/contexts/ThemeContext';
 
 import LoginScreen from './src/screens/LoginScreen';
 import FleetScreen from './src/screens/FleetScreen';
@@ -11,6 +12,9 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import MotoDetailsScreen from './src/screens/MotoDetailsScreen';
 import AddMotoScreen from './src/screens/AddMotoScreen';
 import EditMotoScreen from './src/screens/EditMotoScreen';
+import AddUserScreen from './src/screens/AddUserScreen';
+import EditUserScreen from './src/screens/EditUserScreen';
+import CreateBranchLayoutScreen from './src/screens/CreateBranchLayoutScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -49,14 +53,19 @@ function MainTabs() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
-        <Stack.Screen name="MotoDetails" component={MotoDetailsScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="AddMoto" component={AddMotoScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="EditMoto" component={EditMotoScreen} options={{ headerShown: false }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ThemeProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
+          <Stack.Screen name="MotoDetails" component={MotoDetailsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="AddMoto" component={AddMotoScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="EditMoto" component={EditMotoScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="AddUser" component={AddUserScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="EditUser" component={EditUserScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="CreateBranchLayout" component={CreateBranchLayoutScreen} options={{ headerShown: false }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
