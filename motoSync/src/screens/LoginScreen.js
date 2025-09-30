@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Alert, TouchableOpacity, StatusBar } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { authService } from '../services/api';
 import { userStorage } from '../services/storage';
 import { validateLogin } from '../services/validation';
 import { useTheme } from '../contexts/ThemeContext';
-import { Button, Input, Card, Header } from '../components';
+import { Button, Input, Card, Header, GradientBackground, ModernCard } from '../components';
 import LoadingSpinner from '../components/LoadingSpinner';
+import useResponsive from '../hooks/useResponsive';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -14,6 +16,7 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const theme = useTheme();
+  const { responsiveSize, responsiveFontSize, getPadding, isSmall, isTablet } = useResponsive();
 
   const handleLogin = async () => {
     console.log('Tentando fazer login com:', email, password);
@@ -76,95 +79,261 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  // Estilos responsivos dinâmicos
+  const dynamicStyles = StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      paddingHorizontal: getPadding(),
+    },
+    logoIcon: {
+      width: responsiveSize(80),
+      height: responsiveSize(80),
+      borderRadius: responsiveSize(40),
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: responsiveSize(16),
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    logoText: {
+      fontSize: responsiveFontSize(32),
+      fontWeight: 'bold',
+      color: '#ffffff',
+      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
+    },
+    welcomeTitle: {
+      fontSize: responsiveFontSize(28),
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 8,
+      textAlign: 'center',
+      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
+    },
+    welcomeSubtitle: {
+      fontSize: responsiveFontSize(16),
+      color: 'rgba(255, 255, 255, 0.8)',
+      textAlign: 'center',
+    },
+    formContent: {
+      padding: responsiveSize(20),
+    },
+    inputContainer: {
+      marginBottom: responsiveSize(20),
+    },
+  });
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
-      {/* Header */}
-      <Header
-        title="🏍️ MotoSync"
-        rightIcon={<Feather name="menu" size={24} color={theme.colors.text.primary} />}
-      />
+    <GradientBackground 
+      colors={theme.colors.background.gradient}
+      style={styles.container}
+    >
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
+      
+      <SafeAreaView style={dynamicStyles.safeArea}>
+        {/* Header com Logo */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <View style={dynamicStyles.logoIcon}>
+              <MaterialCommunityIcons name="motorbike" size={responsiveSize(40)} color={theme.colors.white} />
+            </View>
+            <Text style={dynamicStyles.logoText}>MotoSync</Text>
+          </View>
+        </View>
 
-      <View style={styles.welcomeSection}>
-        <Text style={[theme.text.title, styles.welcomeTitle]}>Bem vindo de volta</Text>
-        <Text style={[theme.text.subtitle, styles.welcomeSubtitle]}>Acesse sua conta</Text>
-      </View>
+        {/* Seção de Boas-vindas */}
+        <View style={styles.welcomeSection}>
+          <Text style={dynamicStyles.welcomeTitle}>Bem-vindo de volta!</Text>
+          <Text style={dynamicStyles.welcomeSubtitle}>Acesse sua conta para continuar</Text>
+        </View>
 
-      <Card style={styles.formCard}>
-        <Input
-          label="Email"
-          placeholder="Digite seu e-mail"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          error={errors.email}
-          required
-          leftIcon={<MaterialCommunityIcons name="email-outline" size={20} color={theme.colors.text.tertiary} />}
-        />
+        {/* Card de Login */}
+        <ModernCard style={styles.formCard} gradient={true} gradientColors={theme.colors.primaryGradient}>
+          <View style={dynamicStyles.formContent}>
+            <View style={dynamicStyles.inputContainer}>
+              <Input
+                label="Email"
+                placeholder="Digite seu e-mail"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={errors.email}
+                required
+                leftIcon={<MaterialCommunityIcons name="email-outline" size={responsiveSize(20)} color={theme.colors.white} />}
+                style={styles.input}
+              />
+            </View>
 
-        <Input
-          label="Senha"
-          placeholder="Digite sua senha"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          error={errors.password}
-          required
-          leftIcon={<Feather name="lock" size={20} color={theme.colors.text.tertiary} />}
-        />
+            <View style={dynamicStyles.inputContainer}>
+              <Input
+                label="Senha"
+                placeholder="Digite sua senha"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                error={errors.password}
+                required
+                leftIcon={<Feather name="lock" size={responsiveSize(20)} color={theme.colors.white} />}
+                style={styles.input}
+              />
+            </View>
 
-        <Button
-          title={loading ? 'Entrando...' : 'Entrar'}
-          onPress={handleLogin}
-          disabled={loading}
-          variant={loading ? 'disabled' : 'primary'}
-          size="large"
-          style={styles.loginButton}
-        />
-      </Card>
+            <Button
+              title={loading ? 'Entrando...' : 'Entrar'}
+              onPress={handleLogin}
+              disabled={loading}
+              variant={loading ? 'disabled' : 'primary'}
+              size="large"
+              style={styles.loginButton}
+            />
+          </View>
+        </ModernCard>
 
-      <View style={styles.footerSection}>
-        <TouchableOpacity>
-          <Text style={[theme.text.link, styles.forgotPasswordText]}>Esqueceu sua senha?</Text>
-        </TouchableOpacity>
-        <Text style={[theme.text.secondary, styles.noAccountText]}>Não tem uma conta? Contate um</Text>
-        <Text style={[theme.text.secondary, styles.noAccountText]}>administrador.</Text>
-      </View>
+        {/* Seção de Rodapé */}
+        <View style={styles.footerSection}>
+          <TouchableOpacity style={styles.forgotPasswordButton}>
+            <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
+          </TouchableOpacity>
+          <View style={styles.noAccountContainer}>
+            <Text style={styles.noAccountText}>Não tem uma conta?</Text>
+            <Text style={styles.noAccountText}>Contate um administrador.</Text>
+          </View>
+        </View>
 
-      <LoadingSpinner visible={loading} message="Fazendo login..." />
-    </SafeAreaView>
+        <LoadingSpinner visible={loading} message="Fazendo login..." />
+      </SafeAreaView>
+    </GradientBackground>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+  },
+  safeArea: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  header: {
+    alignItems: 'center',
+    marginTop: 40,
+    marginBottom: 20,
+  },
+  logoContainer: {
+    alignItems: 'center',
+  },
+  logoIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  logoText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   welcomeSection: {
     alignItems: 'center',
     marginBottom: 40,
   },
   welcomeTitle: {
-    marginBottom: 5,
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 8,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   welcomeSubtitle: {
-    // Estilos aplicados via theme.text.subtitle
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
   },
   formCard: {
     marginBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  formContent: {
+    padding: 20,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    borderWidth: 0,
   },
   loginButton: {
     marginTop: 20,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
   footerSection: {
     alignItems: 'center',
+    marginTop: 20,
   },
-  forgotPasswordText: {
+  forgotPasswordButton: {
     marginBottom: 20,
   },
+  forgotPasswordText: {
+    fontSize: 16,
+    color: '#ffffff',
+    textDecorationLine: 'underline',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  noAccountContainer: {
+    alignItems: 'center',
+  },
   noAccountText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

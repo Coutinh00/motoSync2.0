@@ -1,96 +1,129 @@
 /**
- * Sistema de Cores do MotoSync
- * Define todas as cores utilizadas no aplicativo para manter consistência visual
+ * Sistema de Cores Moderno do MotoSync
+ * Design system com gradientes, sombras e cores vibrantes
  */
 
 export const colors = {
-  // Cores Primárias
-  primary: '#007BFF',
-  primaryDark: '#0056B3',
-  primaryLight: '#4DA6FF',
+  // Cores Primárias - Gradiente Azul Moderno
+  primary: '#667eea',
+  primaryDark: '#5a67d8',
+  primaryLight: '#764ba2',
+  primaryGradient: ['#667eea', '#764ba2'],
   
-  // Cores Secundárias
-  secondary: '#6C757D',
-  secondaryDark: '#495057',
-  secondaryLight: '#ADB5BD',
+  // Cores Secundárias - Gradiente Roxo
+  secondary: '#f093fb',
+  secondaryDark: '#f5576c',
+  secondaryLight: '#4facfe',
+  secondaryGradient: ['#f093fb', '#f5576c'],
   
-  // Cores de Status
-  success: '#28A745',
-  successLight: '#D4EDDA',
-  successDark: '#155724',
+  // Cores de Status - Gradientes Vibrantes
+  success: '#4facfe',
+  successLight: '#00f2fe',
+  successDark: '#43e97b',
+  successGradient: ['#43e97b', '#38f9d7'],
   
-  warning: '#FFC107',
-  warningLight: '#FFF3CD',
-  warningDark: '#856404',
+  warning: '#fad961',
+  warningLight: '#f76b1c',
+  warningDark: '#fad961',
+  warningGradient: ['#fad961', '#f76b1c'],
   
-  danger: '#DC3545',
-  dangerLight: '#F8D7DA',
-  dangerDark: '#721C24',
+  danger: '#ff6b6b',
+  dangerLight: '#ffa8a8',
+  dangerDark: '#ee5a52',
+  dangerGradient: ['#ff6b6b', '#ee5a52'],
   
-  info: '#17A2B8',
-  infoLight: '#D1ECF1',
-  infoDark: '#0C5460',
+  info: '#4facfe',
+  infoLight: '#00f2fe',
+  infoDark: '#4facfe',
+  infoGradient: ['#4facfe', '#00f2fe'],
   
-  // Cores Neutras
+  // Cores Neutras - Tons Modernos
   white: '#FFFFFF',
-  black: '#000000',
+  black: '#1a1a1a',
   gray: {
-    50: '#F8F9FA',
-    100: '#E9ECEF',
-    200: '#DEE2E6',
-    300: '#CED4DA',
-    400: '#ADB5BD',
-    500: '#6C757D',
-    600: '#495057',
-    700: '#343A40',
-    800: '#212529',
-    900: '#1A1A1A',
+    50: '#f8fafc',
+    100: '#f1f5f9',
+    200: '#e2e8f0',
+    300: '#cbd5e1',
+    400: '#94a3b8',
+    500: '#64748b',
+    600: '#475569',
+    700: '#334155',
+    800: '#1e293b',
+    900: '#0f172a',
   },
   
-  // Cores de Fundo
+  // Cores de Fundo - Gradientes Suaves
   background: {
-    primary: '#F0F0F0',
-    secondary: '#FFFFFF',
-    tertiary: '#F8F9FA',
+    primary: '#f8fafc',
+    secondary: '#ffffff',
+    tertiary: '#f1f5f9',
+    gradient: ['#f8fafc', '#e2e8f0'],
   },
   
-  // Cores de Texto
+  // Cores de Texto - Hierarquia Clara
   text: {
-    primary: '#212529',
-    secondary: '#6C757D',
-    tertiary: '#ADB5BD',
-    inverse: '#FFFFFF',
-    link: '#007BFF',
+    primary: '#1e293b',
+    secondary: '#64748b',
+    tertiary: '#94a3b8',
+    inverse: '#ffffff',
+    link: '#667eea',
+    accent: '#764ba2',
   },
   
-  // Cores de Borda
+  // Cores de Borda - Suaves
   border: {
-    light: '#E9ECEF',
-    medium: '#CED4DA',
-    dark: '#ADB5BD',
+    light: '#e2e8f0',
+    medium: '#cbd5e1',
+    dark: '#94a3b8',
   },
   
-  // Cores de Status Específicas para Motos
+  // Cores de Status Específicas para Motos - Gradientes
   motoStatus: {
-    ready: '#28A745',      // Prontas
-    lightDamage: '#FFC107', // Dano Leve
-    heavyDamage: '#DC3545', // Dano Grave
-    maintenance: '#17A2B8', // Manutenção
-    parked: '#6C757D',     // Estacionada
+    ready: '#43e97b',      // Prontas - Verde vibrante
+    lightDamage: '#fad961', // Dano Leve - Amarelo
+    heavyDamage: '#ff6b6b', // Dano Grave - Vermelho
+    maintenance: '#4facfe', // Manutenção - Azul
+    parked: '#94a3b8',     // Estacionada - Cinza
+    readyGradient: ['#43e97b', '#38f9d7'],
+    lightDamageGradient: ['#fad961', '#f76b1c'],
+    heavyDamageGradient: ['#ff6b6b', '#ee5a52'],
+    maintenanceGradient: ['#4facfe', '#00f2fe'],
   },
   
   // Cores de Status para Usuários
   userStatus: {
-    active: '#28A745',     // Ativo
-    pending: '#FFC107',    // Pendente
-    inactive: '#DC3545',   // Inativo
+    active: '#43e97b',     // Ativo
+    pending: '#fad961',    // Pendente
+    inactive: '#ff6b6b',   // Inativo
+    activeGradient: ['#43e97b', '#38f9d7'],
+    pendingGradient: ['#fad961', '#f76b1c'],
+    inactiveGradient: ['#ff6b6b', '#ee5a52'],
   },
   
   // Cores de Função/Role
   userRole: {
-    admin: '#007BFF',       // Admin
-    user: '#6C757D',       // Usuário
-    manager: '#28A745',    // Gerente
+    admin: '#667eea',       // Admin
+    user: '#94a3b8',       // Usuário
+    manager: '#43e97b',    // Gerente
+    adminGradient: ['#667eea', '#764ba2'],
+    userGradient: ['#94a3b8', '#64748b'],
+    managerGradient: ['#43e97b', '#38f9d7'],
+  },
+  
+  // Cores de Sombras - Modernas
+  shadow: {
+    light: 'rgba(0, 0, 0, 0.05)',
+    medium: 'rgba(0, 0, 0, 0.1)',
+    dark: 'rgba(0, 0, 0, 0.15)',
+    colored: 'rgba(102, 126, 234, 0.2)',
+  },
+  
+  // Cores de Overlay
+  overlay: {
+    light: 'rgba(255, 255, 255, 0.8)',
+    dark: 'rgba(0, 0, 0, 0.5)',
+    primary: 'rgba(102, 126, 234, 0.1)',
   },
 };
 

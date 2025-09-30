@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ScrollView, Alert, StatusBar } from 'react-native';
 import { Feather, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRoute, useFocusEffect } from '@react-navigation/native';
 import { motoService } from '../services/api';
 import { motoStorage } from '../services/storage';
+import { useTheme } from '../contexts/ThemeContext';
+import { ModernCard, AnimatedCard, GradientBackground } from '../components';
 import LoadingSpinner from '../components/LoadingSpinner';
+import useResponsive from '../hooks/useResponsive';
 
 const motosData = [
   { id: '1', plate: 'ABC-1234', model: 'Mottu POP', chassis: '2KDJ3LPD9', rfid: '1938402011', status: 'Prontas', location: 'Brasil, São Paulo', filial: 'Butantã-1' },
@@ -20,6 +24,8 @@ const FleetScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const route = useRoute();
+  const theme = useTheme();
+  const { responsiveSize, responsiveFontSize, getCardWidth, getPadding, isSmall, isTablet } = useResponsive();
 
   // Carregar motos ao montar o componente
   useEffect(() => {
@@ -87,89 +93,191 @@ const FleetScreen = ({ navigation }) => {
     );
   };
 
-  const renderMotoItem = ({ item }) => (
-    <View style={styles.motoItem}>
-      <View style={styles.motoInfo}>
-        <Text style={styles.motoPlate}>{item.plate}</Text>
-        <Text>{item.model}</Text>
-        <Text>Chassis: {item.chassis}</Text>
-        <Text>RFID: {item.rfid}</Text>
-      </View>
-      <View style={styles.motoStatusContainer}>
-        <Text style={[styles.motoStatus, item.status === 'Prontas' && styles.statusProntas, item.status === 'Dano Leve' && styles.statusDanoLeve, item.status === 'Dano Grave' && styles.statusDanoGrave]}>{item.status}</Text>
-        <View style={styles.motoLocation}>
-          <Feather name="map-pin" size={14} color="gray" />
-          <Text style={styles.motoLocationText}>{item.location}\n{item.filial}</Text>
-        </View>
-        <View style={styles.motoActions}>
-          <TouchableOpacity style={styles.verDetalhesButton} onPress={() => navigation.navigate('MotoDetails', { moto: item })}>
-            <Text style={styles.verDetalhesButtonText}>Ver detalhes</Text>
-          </TouchableOpacity>
-          <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              style={styles.editButton} 
-              onPress={() => navigation.navigate('EditMoto', { moto: item })}
-            >
-              <Feather name="edit" size={16} color="#007BFF" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.deleteButton} 
-              onPress={() => handleDeleteMoto(item.id)}
-            >
-              <Feather name="trash-2" size={16} color="#dc3545" />
-            </TouchableOpacity>
+  const renderMotoItem = ({ item }) => {
+    const getStatusColor = (status) => {
+      switch (status) {
+        case 'Prontas':
+          return theme.colors.success;
+        case 'Dano Leve':
+          return theme.colors.warning;
+        case 'Dano Grave':
+          return theme.colors.danger;
+        default:
+          return theme.colors.gray[500];
+      }
+    };
+
+    const getStatusGradient = (status) => {
+      switch (status) {
+        case 'Prontas':
+          return theme.colors.successGradient;
+        case 'Dano Leve':
+          return theme.colors.warningGradient;
+        case 'Dano Grave':
+          return theme.colors.dangerGradient;
+        default:
+          return theme.colors.gray[500];
+      }
+    };
+
+    return (
+      <AnimatedCard style={styles.motoCard} pressable={true} onPress={() => navigation.navigate('MotoDetails', { moto: item })} delay={parseInt(item.id) * 100}>
+        <View style={styles.motoHeader}>
+          <View style={styles.motoTitleContainer}>
+            <Text style={styles.motoPlate}>{item.plate}</Text>
+            <Text style={styles.motoModel}>{item.model}</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+            <Text style={styles.statusText}>{item.status}</Text>
           </View>
         </View>
-      </View>
-    </View>
-  );
+
+        <View style={styles.motoDetails}>
+          <View style={styles.motoDetailRow}>
+            <Feather name="hash" size={16} color={theme.colors.text.secondary} />
+            <Text style={styles.motoDetailText}>Chassis: {item.chassis}</Text>
+          </View>
+          <View style={styles.motoDetailRow}>
+            <Feather name="tag" size={16} color={theme.colors.text.secondary} />
+            <Text style={styles.motoDetailText}>RFID: {item.rfid}</Text>
+          </View>
+          <View style={styles.motoDetailRow}>
+            <Feather name="map-pin" size={16} color={theme.colors.text.secondary} />
+            <Text style={styles.motoDetailText}>{item.location}</Text>
+          </View>
+          <View style={styles.motoDetailRow}>
+            <Feather name="building" size={16} color={theme.colors.text.secondary} />
+            <Text style={styles.motoDetailText}>{item.filial}</Text>
+          </View>
+        </View>
+
+        <View style={styles.motoActions}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.viewButton]} 
+            onPress={() => navigation.navigate('MotoDetails', { moto: item })}
+          >
+            <Feather name="eye" size={16} color={theme.colors.primary} />
+            <Text style={styles.actionButtonText}>Ver</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.editButton]} 
+            onPress={() => navigation.navigate('EditMoto', { moto: item })}
+          >
+            <Feather name="edit" size={16} color={theme.colors.warning} />
+            <Text style={styles.actionButtonText}>Editar</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.deleteButton]} 
+            onPress={() => handleDeleteMoto(item.id)}
+          >
+            <Feather name="trash-2" size={16} color={theme.colors.danger} />
+            <Text style={styles.actionButtonText}>Excluir</Text>
+          </TouchableOpacity>
+        </View>
+      </AnimatedCard>
+    );
+  };
 
   return (
     <View style={styles.container}>
       {/* Renderização condicional baseada na rota */}
       {route.name === 'Home' ? (
-        // Conteúdo para a tela Home (Layout e Estatísticas - Placeholder)
-        <ScrollView>
-          <View style={styles.header}>
-             <Feather name="bell" size={24} color="black" />
-            <Text style={styles.headerTitle}>Home</Text>
-             <Feather name="menu" size={24} color="black" />
-          </View>
-          <View style={styles.welcomeSection}>
-            <Text style={styles.welcomeTitle}>Welcome back, John</Text>
-          </View>
-          <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
-              <MaterialCommunityIcons name="motorbike" size={24} color="black" />
-              <Text style={styles.statNumber}>245</Text>
-              <Text style={styles.statLabel}>Total</Text>
+        // Conteúdo para a tela Home com design moderno
+        <GradientBackground colors={theme.colors.background.gradient} style={styles.homeContainer}>
+          <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+          
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Header Moderno */}
+            <View style={styles.modernHeader}>
+              <View style={styles.headerLeft}>
+                <View style={styles.profileIcon}>
+                  <MaterialCommunityIcons name="account" size={24} color={theme.colors.white} />
+                </View>
+                <View>
+                  <Text style={styles.greetingText}>Olá, John!</Text>
+                  <Text style={styles.greetingSubtext}>Bem-vindo de volta</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.notificationButton}>
+                <Feather name="bell" size={24} color={theme.colors.primary} />
+                <View style={styles.notificationBadge} />
+              </TouchableOpacity>
             </View>
-            <View style={styles.statCard}>
-               <Feather name="tool" size={24} color="black" />
-              <Text style={styles.statNumber}>12</Text>
-              <Text style={styles.statLabel}>Manutenção</Text>
+
+            {/* Cards de Estatísticas Modernos com Animações */}
+            <View style={[styles.statsGrid, { paddingHorizontal: getPadding() }]}>
+              <AnimatedCard variant="stat" gradient={true} gradientColors={theme.colors.primaryGradient} style={[styles.statCard, { width: getCardWidth() }]} delay={0}>
+                <MaterialCommunityIcons name="motorbike" size={responsiveSize(32)} color={theme.colors.white} />
+                <Text style={[styles.statNumber, { fontSize: responsiveFontSize(28) }]}>245</Text>
+                <Text style={[styles.statLabel, { fontSize: responsiveFontSize(12) }]}>Total de Motos</Text>
+              </AnimatedCard>
+
+              <AnimatedCard variant="stat" gradient={true} gradientColors={theme.colors.successGradient} style={[styles.statCard, { width: getCardWidth() }]} delay={100}>
+                <Feather name="check-circle" size={responsiveSize(32)} color={theme.colors.white} />
+                <Text style={[styles.statNumber, { fontSize: responsiveFontSize(28) }]}>45</Text>
+                <Text style={[styles.statLabel, { fontSize: responsiveFontSize(12) }]}>Prontas</Text>
+              </AnimatedCard>
+
+              <AnimatedCard variant="stat" gradient={true} gradientColors={theme.colors.warningGradient} style={[styles.statCard, { width: getCardWidth() }]} delay={200}>
+                <Feather name="tool" size={responsiveSize(32)} color={theme.colors.white} />
+                <Text style={[styles.statNumber, { fontSize: responsiveFontSize(28) }]}>12</Text>
+                <Text style={[styles.statLabel, { fontSize: responsiveFontSize(12) }]}>Manutenção</Text>
+              </AnimatedCard>
+
+              <AnimatedCard variant="stat" gradient={true} gradientColors={theme.colors.dangerGradient} style={[styles.statCard, { width: getCardWidth() }]} delay={300}>
+                <Feather name="alert-triangle" size={responsiveSize(32)} color={theme.colors.white} />
+                <Text style={[styles.statNumber, { fontSize: responsiveFontSize(28) }]}>8</Text>
+                <Text style={[styles.statLabel, { fontSize: responsiveFontSize(12) }]}>Com Problemas</Text>
+              </AnimatedCard>
             </View>
-            {/* Adicionar mais stat cards conforme a imagem */}
-             <View style={styles.statCard}>
-               <Feather name="tag" size={24} color="black" />
-              <Text style={styles.statNumber}>45</Text>
-              <Text style={styles.statLabel}>Prontas</Text>
-            </View>
-             <View style={styles.statCard}>
-               <Feather name="truck" size={24} color="black" />
-              <Text style={styles.statNumber}>8</Text>
-              <Text style={styles.statLabel}>Estacionada</Text>
-            </View>
-          </View>
-          <View style={styles.layoutSection}>
-            <Text style={styles.layoutTitle}>Layout</Text>
-            {/* Placeholder para a imagem do layout */}
-            <View style={styles.layoutImagePlaceholder}>
-              <Text>Imagem do Layout</Text>
-              {/* Aqui você pode adicionar a imagem real do layout */}
-            </View>
-          </View>
-        </ScrollView>
+
+            {/* Seção de Ações Rápidas */}
+            <AnimatedCard style={styles.quickActionsCard} delay={400}>
+              <Text style={styles.sectionTitle}>Ações Rápidas</Text>
+              <View style={styles.quickActionsGrid}>
+                <TouchableOpacity style={styles.quickActionButton}>
+                  <View style={[styles.quickActionIcon, { backgroundColor: theme.colors.primary }]}>
+                    <Feather name="plus" size={20} color={theme.colors.white} />
+                  </View>
+                  <Text style={styles.quickActionText}>Adicionar Moto</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.quickActionButton}>
+                  <View style={[styles.quickActionIcon, { backgroundColor: theme.colors.success }]}>
+                    <Feather name="search" size={20} color={theme.colors.white} />
+                  </View>
+                  <Text style={styles.quickActionText}>Buscar Moto</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.quickActionButton}>
+                  <View style={[styles.quickActionIcon, { backgroundColor: theme.colors.warning }]}>
+                    <Feather name="settings" size={20} color={theme.colors.white} />
+                  </View>
+                  <Text style={styles.quickActionText}>Configurações</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.quickActionButton}>
+                  <View style={[styles.quickActionIcon, { backgroundColor: theme.colors.info }]}>
+                    <Feather name="bar-chart" size={20} color={theme.colors.white} />
+                  </View>
+                  <Text style={styles.quickActionText}>Relatórios</Text>
+                </TouchableOpacity>
+              </View>
+            </AnimatedCard>
+
+            {/* Seção de Layout */}
+            <AnimatedCard style={styles.layoutCard} delay={500}>
+              <Text style={styles.sectionTitle}>Layout da Filial</Text>
+              <View style={styles.layoutPreview}>
+                <MaterialCommunityIcons name="map" size={48} color={theme.colors.primary} />
+                <Text style={styles.layoutText}>Visualização do Layout</Text>
+                <Text style={styles.layoutSubtext}>Toque para ver o layout completo</Text>
+              </View>
+            </AnimatedCard>
+          </ScrollView>
+        </GradientBackground>
       ) : (
         // Conteúdo para a tela Motos (Lista de Motos)
         <View style={{ flex: 1 }}>
@@ -211,9 +319,16 @@ const FleetScreen = ({ navigation }) => {
             }
           />
 
-          {/* Add Moto Button */}
+          {/* Add Moto Button Moderno */}
           <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddMoto')}>
-            <AntDesign name="plus" size={24} color="white" />
+            <LinearGradient
+              colors={theme.colors.primaryGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.addButtonGradient}
+            >
+              <AntDesign name="plus" size={24} color="white" />
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       )}
@@ -226,8 +341,139 @@ const FleetScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    padding: 10,
+    backgroundColor: '#f8fafc',
+  },
+  homeContainer: {
+    flex: 1,
+  },
+  modernHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  greetingText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 2,
+  },
+  greetingSubtext: {
+    fontSize: 14,
+    color: '#64748b',
+  },
+  notificationButton: {
+    position: 'relative',
+    padding: 8,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ff6b6b',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  statCard: {
+    width: '48%',
+    marginBottom: 16,
+    alignItems: 'center',
+    padding: 20,
+  },
+  statNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+  },
+  quickActionsCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 16,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  quickActionButton: {
+    width: '48%',
+    alignItems: 'center',
+    padding: 16,
+    marginBottom: 12,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  quickActionText: {
+    fontSize: 12,
+    color: '#64748b',
+    textAlign: 'center',
+  },
+  layoutCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+  },
+  layoutPreview: {
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    borderStyle: 'dashed',
+  },
+  layoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1e293b',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  layoutSubtext: {
+    fontSize: 14,
+    color: '#64748b',
   },
   header: {
     flexDirection: 'row',
@@ -268,74 +514,105 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 20,
   },
-  motoItem: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+  motoCard: {
+    marginHorizontal: 20,
+    marginVertical: 8,
+    padding: 20,
+  },
+  motoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
-  motoInfo: {
+  motoTitleContainer: {
     flex: 1,
   },
   motoPlate: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 5,
+    color: '#1e293b',
+    marginBottom: 4,
   },
-  motoStatusContainer: {
-    alignItems: 'flex-end',
+  motoModel: {
+    fontSize: 16,
+    color: '#64748b',
   },
-  motoStatus: {
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 10,
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginLeft: 12,
+  },
+  statusText: {
     fontSize: 12,
     fontWeight: 'bold',
-    marginBottom: 5,
+    color: '#ffffff',
   },
-  statusProntas: {
-    backgroundColor: '#D4EDDA',
-    color: '#155724',
+  motoDetails: {
+    marginBottom: 16,
   },
-  statusDanoLeve: {
-    backgroundColor: '#FFF3CD',
-    color: '#856404',
-  },
-  statusDanoGrave: {
-    backgroundColor: '#F8D7DA',
-    color: '#721C24',
-  },
-  motoLocation: {
+  motoDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 8,
   },
-  motoLocationText: {
-    fontSize: 12,
-    color: 'gray',
-    marginLeft: 5,
-  },
-  verDetalhesButton: {
-    marginTop: 5,
-  },
-  verDetalhesButtonText: {
-    color: '#007BFF',
+  motoDetailText: {
     fontSize: 14,
+    color: '#64748b',
+    marginLeft: 8,
+    flex: 1,
+  },
+  motoActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    flex: 1,
+    marginHorizontal: 4,
+    justifyContent: 'center',
+  },
+  viewButton: {
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+  },
+  editButton: {
+    backgroundColor: 'rgba(250, 217, 97, 0.1)',
+  },
+  deleteButton: {
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
   },
   addButton: {
     position: 'absolute',
     bottom: 80,
     right: 30,
-    backgroundColor: '#007BFF',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  addButtonGradient: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5,
   },
   welcomeSection: {
     alignItems: 'center',
