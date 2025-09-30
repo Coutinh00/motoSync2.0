@@ -41,7 +41,7 @@ https://68d9a88d90a75154f0dae049.mockapi.io
 {
   "id": "1",
   "login": "lucas", 
-  "senha": "123456",
+  "senha": "",
   "createdAt": "2025-09-29T19:00:00Z"
 }
 

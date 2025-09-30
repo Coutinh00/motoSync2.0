@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Alert, TouchableOpacity } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { authService } from '../services/api';
 import { userStorage } from '../services/storage';
@@ -16,12 +16,15 @@ const LoginScreen = ({ navigation }) => {
   const theme = useTheme();
 
   const handleLogin = async () => {
+    console.log('Tentando fazer login com:', email, password);
+    
     // Limpar erros anteriores
     setErrors({});
 
     // Validação dos campos
     const validation = validateLogin(email, password);
     if (!validation.isValid) {
+      console.log('Erro de validação:', validation.errors);
       setErrors(validation.errors);
       return;
     }
@@ -30,20 +33,26 @@ const LoginScreen = ({ navigation }) => {
 
     try {
       // Tentar fazer login via API
+      console.log('Tentando login via API...');
       const response = await authService.login(email, password);
       
       // Salvar dados do usuário e token no AsyncStorage
       await userStorage.saveUserData(response.user);
       await userStorage.saveToken(response.token);
       
+      console.log('Login via API bem-sucedido, navegando...');
       // Navegar para a tela principal
       navigation.navigate('Main');
     } catch (error) {
+      console.log('Erro na API, tentando login mock:', error.message);
       // Se a API falhar, usar credenciais de exemplo para demonstração
       const exampleEmail = 'teste@example.com';
       const examplePassword = '123456';
 
+      console.log('Verificando credenciais:', email === exampleEmail, password === examplePassword);
+
       if (email === exampleEmail && password === examplePassword) {
+        console.log('Credenciais corretas, criando usuário mock...');
         // Simular dados do usuário para demonstração
         const mockUser = {
           id: '1',
@@ -56,8 +65,10 @@ const LoginScreen = ({ navigation }) => {
         await userStorage.saveUserData(mockUser);
         await userStorage.saveToken('mock_token_123');
         
+        console.log('Usuário mock criado, navegando...');
         navigation.navigate('Main');
       } else {
+        console.log('Credenciais incorretas');
         Alert.alert('Erro de Login', 'Email ou senha incorretos. Tente: teste@example.com / 123456');
       }
     } finally {
