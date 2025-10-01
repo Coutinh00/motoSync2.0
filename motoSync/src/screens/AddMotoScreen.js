@@ -1,22 +1,39 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { View, Text, StyleSheet, ScrollView, Alert, SafeAreaView, StatusBar, TouchableOpacity } from 'react-native';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { motoService } from '../services/api';
 import { motoStorage } from '../services/storage';
 import { validateMoto } from '../services/validation';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { useTheme } from '../contexts/ThemeContext';
+import { Button, FormField, Dropdown, LoadingSpinner } from '../components';
 
 const AddMotoScreen = ({ navigation }) => {
-  const [plate, setPlate] = useState('');
+  const [plate, setPlate] = useState('ABC-1234');
   const [model, setModel] = useState('');
   const [chassis, setChassis] = useState('');
   const [rfid, setRfid] = useState('');
-  const [status, setStatus] = useState('');
+  const [iotTag, setIotTag] = useState('');
+  const [status, setStatus] = useState('Dano Leve');
   const [location, setLocation] = useState('');
-  const [filial, setFilial] = useState('');
+  const [filial, setFilial] = useState('São paulo-01');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  
+  const theme = useTheme();
+
+  const statusOptions = [
+    { value: 'Prontas', label: 'Prontas' },
+    { value: 'Dano Leve', label: 'Dano Leve' },
+    { value: 'Dano Grave', label: 'Dano Grave' },
+  ];
+
+  const filialOptions = [
+    { value: 'São paulo-01', label: 'São paulo-01' },
+    { value: 'São paulo-02', label: 'São paulo-02' },
+    { value: 'Rio de Janeiro-01', label: 'Rio de Janeiro-01' },
+    { value: 'Belo Horizonte-01', label: 'Belo Horizonte-01' },
+  ];
 
   const handleSaveMoto = async () => {
     // Limpar erros anteriores
@@ -27,6 +44,7 @@ const AddMotoScreen = ({ navigation }) => {
       model,
       chassis,
       rfid,
+      iotTag,
       status,
       location,
       filial,
@@ -49,7 +67,7 @@ const AddMotoScreen = ({ navigation }) => {
       // Salvar no AsyncStorage também
       await motoStorage.addMoto(newMoto);
       
-      Alert.alert('Sucesso', 'Moto adicionada com sucesso!', [
+      Alert.alert('Sucesso', 'Moto cadastrada com sucesso!', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
     } catch (error) {
@@ -62,7 +80,7 @@ const AddMotoScreen = ({ navigation }) => {
       
       await motoStorage.addMoto(localMoto);
       
-      Alert.alert('Sucesso', 'Moto adicionada localmente!', [
+      Alert.alert('Sucesso', 'Moto cadastrada localmente!', [
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
     } finally {
@@ -71,171 +89,251 @@ const AddMotoScreen = ({ navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Adicionar nova moto</Text>
-        <View style={{ width: 24 }} />{/* Spacer */}
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
+      
+      <SafeAreaView style={styles.safeArea}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Feather name="arrow-left" size={24} color="#000000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Cadastrar motocicleta</Text>
+          <View style={{ width: 24 }} />
+        </View>
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Placa *</Text>
-        <TextInput 
-          style={[styles.input, errors.plate && styles.inputError]} 
-          value={plate} 
-          onChangeText={setPlate}
-          placeholder="ABC-1234"
-        />
-        {errors.plate && <Text style={styles.errorText}>{errors.plate}</Text>}
-
-        <Text style={styles.label}>Modelo *</Text>
-        <TextInput 
-          style={[styles.input, errors.model && styles.inputError]} 
-          value={model} 
-          onChangeText={setModel}
-          placeholder="Mottu POP"
-        />
-        {errors.model && <Text style={styles.errorText}>{errors.model}</Text>}
-
-        <Text style={styles.label}>Chassis *</Text>
-        <TextInput 
-          style={[styles.input, errors.chassis && styles.inputError]} 
-          value={chassis} 
-          onChangeText={setChassis}
-          placeholder="2KDJ3LPD9"
-        />
-        {errors.chassis && <Text style={styles.errorText}>{errors.chassis}</Text>}
-
-        <Text style={styles.label}>RFID Tag *</Text>
-        <TextInput 
-          style={[styles.input, errors.rfid && styles.inputError]} 
-          value={rfid} 
-          onChangeText={setRfid}
-          placeholder="1938402011"
-        />
-        {errors.rfid && <Text style={styles.errorText}>{errors.rfid}</Text>}
-
-        <Text style={styles.label}>Status *</Text>
-        <TextInput 
-          style={[styles.input, errors.status && styles.inputError]} 
-          value={status} 
-          onChangeText={setStatus}
-          placeholder="Prontas, Dano Leve, Dano Grave"
-        />
-        {errors.status && <Text style={styles.errorText}>{errors.status}</Text>}
-
-        <Text style={styles.label}>Localização *</Text>
-        <TextInput 
-          style={[styles.input, errors.location && styles.inputError]} 
-          value={location} 
-          onChangeText={setLocation}
-          placeholder="Brasil, São Paulo"
-        />
-        {errors.location && <Text style={styles.errorText}>{errors.location}</Text>}
-
-        <Text style={styles.label}>Filial *</Text>
-        <TextInput 
-          style={[styles.input, errors.filial && styles.inputError]} 
-          value={filial} 
-          onChangeText={setFilial}
-          placeholder="Butantã-1"
-        />
-        {errors.filial && <Text style={styles.errorText}>{errors.filial}</Text>}
-
-        <Text style={styles.label}>Notas</Text>
-        <TextInput
-          style={[styles.input, styles.notesInput]}
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-          numberOfLines={4}
-          placeholder="Observações adicionais..."
-        />
-
-        <TouchableOpacity 
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]} 
-          onPress={handleSaveMoto}
-          disabled={loading}
+        <ScrollView 
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
         >
-          <Text style={styles.saveButtonText}>
-            {loading ? 'Salvando...' : 'Salvar moto'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {/* Form Section */}
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>Informações sobre motocicletas</Text>
+            
+            <View style={styles.formCard}>
+              {/* Modelo */}
+              <FormField
+                label="Modelo"
+                placeholder="Insira o modelo da motocicleta"
+                value={model}
+                onChangeText={setModel}
+                error={errors.model}
+              />
 
-      <LoadingSpinner visible={loading} message="Salvando moto..." />
-    </ScrollView>
+              {/* Placa */}
+              <FormField
+                label="Placa"
+                placeholder="ABC-1234"
+                value={plate}
+                onChangeText={setPlate}
+                error={errors.plate}
+              />
+
+              {/* Número do Chassi */}
+              <FormField
+                label="Número do Chassi"
+                placeholder="Digite o número do chassi"
+                value={chassis}
+                onChangeText={setChassis}
+                error={errors.chassis}
+              />
+
+              {/* Estado atual */}
+              <Dropdown
+                label="Estado atual"
+                value={status}
+                onValueChange={setStatus}
+                options={statusOptions}
+                placeholder="Selecione o estado"
+                error={errors.status}
+              />
+
+              {/* RFID Tag */}
+              <View style={styles.rfidContainer}>
+                <FormField
+                  label="RFID Tag"
+                  placeholder="Código"
+                  value={rfid}
+                  onChangeText={setRfid}
+                  error={errors.rfid}
+                  style={styles.rfidInput}
+                />
+                <View style={styles.rfidButtons}>
+                  <TouchableOpacity style={styles.scanButton}>
+                    <MaterialCommunityIcons name="qrcode-scan" size={20} color="#6B7280" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.scanButton}>
+                    <MaterialCommunityIcons name="qrcode-scan" size={20} color="#6B7280" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* IoT Tag */}
+              <View style={styles.iotContainer}>
+                <FormField
+                  label="IoT Tag (Opcional)"
+                  placeholder="Preencher automaticamente ou escanear"
+                  value={iotTag}
+                  onChangeText={setIotTag}
+                  error={errors.iotTag}
+                  style={styles.iotInput}
+                />
+                <TouchableOpacity style={styles.qrButton}>
+                  <MaterialCommunityIcons name="qrcode" size={20} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Localização na filial */}
+              <FormField
+                label="Localização na filial"
+                placeholder="E.g. Estacionamento A"
+                value={location}
+                onChangeText={setLocation}
+                error={errors.location}
+              />
+
+              {/* Filial */}
+              <Dropdown
+                label="Filial"
+                value={filial}
+                onValueChange={setFilial}
+                options={filialOptions}
+                placeholder="Selecione a filial"
+                error={errors.filial}
+              />
+
+              {/* Notas */}
+              <FormField
+                label="Notas (Opcional)"
+                placeholder="Detalhes adicionais..."
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+                numberOfLines={4}
+                style={styles.notesInput}
+              />
+
+              {/* Botão Cadastrar */}
+              <Button
+                title="Cadastrar"
+                onPress={handleSaveMoto}
+                disabled={loading}
+                variant={loading ? 'disabled' : 'primary'}
+                style={styles.cadastrarButton}
+              />
+            </View>
+          </View>
+        </ScrollView>
+
+        <LoadingSpinner visible={loading} message="Cadastrando moto..." />
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    padding: 10,
+    backgroundColor: '#F9FAFB',
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingTop: 10,
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
+    backgroundColor: '#F9FAFB',
   },
   headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  formSection: {
+    marginTop: 20,
+  },
+  sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 20,
   },
-  form: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-    fontWeight: 'bold',
+  rfidContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 16,
   },
-  input: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 15,
+  rfidInput: {
+    flex: 1,
+    marginRight: 8,
+  },
+  rfidButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  scanButton: {
+    width: 40,
     height: 40,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  iotContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 16,
+  },
+  iotInput: {
+    flex: 1,
+    marginRight: 8,
+  },
+  qrButton: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   notesInput: {
     height: 100,
     textAlignVertical: 'top',
   },
-  saveButton: {
-    backgroundColor: '#28A745',
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  inputError: {
-    borderColor: '#dc3545',
-    borderWidth: 2,
-  },
-  errorText: {
-    color: '#dc3545',
-    fontSize: 12,
-    marginTop: -10,
-    marginBottom: 10,
-    marginLeft: 5,
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#ccc',
+  cadastrarButton: {
+    marginTop: 24,
+    backgroundColor: '#3B82F6',
+    borderRadius: 8,
+    paddingVertical: 16,
   },
 });
 

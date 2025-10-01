@@ -22,192 +22,286 @@ const MotoDetailsScreen = ({ route, navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={24} color="black" />
+          <Feather name="arrow-left" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detalhes da motocicleta</Text>
         <TouchableOpacity onPress={handleEditMoto}>
-           <Feather name="edit" size={24} color="black" />
+           <Feather name="edit" size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
-      {/* Moto Details */}
-      <View style={styles.detailsCard}>
-        <Text style={styles.detailTitle}>{moto.model}</Text>
-         <View style={styles.statusContainer}>
-           <Text style={[styles.motoStatus, moto.status === 'Prontas' && styles.statusProntas, moto.status === 'Dano Leve' && styles.statusDanoLeve, moto.status === 'Dano Grave' && styles.statusDanoGrave]}>{moto.status}</Text>
-        </View>
-        <Text style={styles.detailText}><Text style={styles.detailLabel}>Plate:</Text> {moto.plate}</Text>
-        <Text style={styles.detailText}><Text style={styles.detailLabel}>Chassi:</Text> {moto.chassis}</Text>
-        <Text style={styles.detailText}><Text style={styles.detailLabel}>RFID Tag:</Text> {moto.rfid}</Text>
-         {/* Adicionar mais detalhes conforme a imagem */}
-         <Text style={styles.detailText}><Text style={styles.detailLabel}>IOT Tag:</Text> IOT-2048</Text>
-         <Text style={styles.detailText}><Text style={styles.detailLabel}>Local:</Text> {moto.location}</Text>
-         <Text style={styles.detailText}><Text style={styles.detailLabel}>Filial:</Text> {moto.filial}</Text>
+      <ScrollView style={styles.scrollContainer}>
 
-         {/* Notas atuais */}
-         <Text style={styles.notesTitle}>Notas atuais</Text>
-         <View style={styles.notesContainer}>
+        {/* Moto Details */}
+        <View style={styles.detailsCard}>
+          <View style={styles.titleRow}>
+            <Text style={styles.detailTitle}>{moto.model}</Text>
+            <View style={styles.statusContainer}>
+              <MaterialCommunityIcons name="lightning-bolt" size={16} color="#ffffff" />
+              <Text style={[styles.motoStatus, moto.status === 'Prontas' && styles.statusProntas, moto.status === 'Dano Leve' && styles.statusDanoLeve, moto.status === 'Dano Grave' && styles.statusDanoGrave]}>{moto.status}</Text>
+            </View>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Plate:</Text>
+            <Text style={styles.detailValue}>{moto.plate}</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Chassi:</Text>
+            <Text style={styles.detailValue}>{moto.chassis}</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>RFID Tag:</Text>
+            <Text style={styles.detailValue}>{moto.rfid}</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>IOT Tag:</Text>
+            <Text style={styles.detailValue}>IOT-2048</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Local:</Text>
+            <Text style={styles.detailValue}>{moto.location}</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Filial:</Text>
+            <Text style={styles.detailValue}>{moto.filial}</Text>
+          </View>
+
+          {/* Notas atuais */}
+          <Text style={styles.notesTitle}>Notas atuais</Text>
+          <View style={styles.notesContainer}>
             <Text style={styles.notesText}>Óleo trocado; rodízio de pneus agendado para a próxima semana.</Text>
-         </View>
+          </View>
 
-         {/* Criado por */}
-         <Text style={styles.createdBy}>Criado por</Text>
-         <Text style={styles.createdByEmail}>lucas.andrade@moto.com</Text>
-         {/* Última atualização */}
-         <Text style={styles.lastUpdated}>Última atualização</Text>
-         <Text style={styles.lastUpdatedDate}>12/04/2025 15:42</Text>
-      </View>
+          {/* Criado por */}
+          <View style={styles.createdByContainer}>
+            <Text style={styles.createdBy}>Criado por</Text>
+            <View style={styles.createdByRow}>
+              <View style={styles.avatar}>
+                <MaterialCommunityIcons name="account" size={20} color="#6B7280" />
+              </View>
+              <Text style={styles.createdByEmail}>lucas.andrade@moto.com</Text>
+            </View>
+          </View>
 
-      {/* Action Buttons */}
-      <TouchableOpacity style={styles.editButton} onPress={handleEditMoto}>
-        <Text style={styles.editButtonText}>Editar moto</Text>
-      </TouchableOpacity>
+          {/* Última atualização */}
+          <View style={styles.lastUpdatedContainer}>
+            <Text style={styles.lastUpdated}>Última atualização</Text>
+            <Text style={styles.lastUpdatedDate}>12/04/2025 15:42</Text>
+          </View>
+        </View>
 
-      <TouchableOpacity style={styles.deleteButton} onPress={() => setShowDeleteModal(true)}>
-        <Text style={styles.deleteButtonText}>Excluir moto</Text>
-      </TouchableOpacity>
+        {/* Action Buttons */}
+        <TouchableOpacity style={styles.editButton} onPress={handleEditMoto}>
+          <Text style={styles.editButtonText}>Editar moto</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.deleteButton} onPress={() => setShowDeleteModal(true)}>
+          <Text style={styles.deleteButtonText}>Excluir moto</Text>
+        </TouchableOpacity>
+      </ScrollView>
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <MaterialCommunityIcons name="alert-circle-outline" size={40} color="red" style={styles.modalIcon} />
+            <MaterialCommunityIcons name="alert-triangle" size={40} color="#EF4444" style={styles.modalIcon} />
             <Text style={styles.modalTitle}>Excluir motocicleta?</Text>
             <Text style={styles.modalMessage}>Tem certeza de que deseja excluir esta motocicleta? Esta ação não pode ser desfeita.</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalCancelButton} onPress={() => setShowDeleteModal(false)}>
-                <Text style={styles.modalButtonText}>Cancelar</Text>
-              </TouchableOpacity>
               <TouchableOpacity style={styles.modalDeleteButton} onPress={handleDeleteMoto}>
-                <Text style={[styles.modalButtonText, styles.modalDeleteButtonText]}>Excluir</Text>
+                <Text style={styles.modalDeleteButtonText}>Excluir</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalCancelButton} onPress={() => setShowDeleteModal(false)}>
+                <Text style={styles.modalCancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    padding: 10,
+    backgroundColor: '#ffffff',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingTop: 10,
-    marginBottom: 10,
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 16,
+    backgroundColor: '#6B7280',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
   },
   detailsCard: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
+    backgroundColor: '#ffffff',
+    margin: 20,
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 20,
   },
   detailTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    color: '#1F2937',
+    flex: 1,
   },
-   statusContainer: {
-     position: 'absolute',
-     top: 15,
-     right: 15,
-   },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#9CA3AF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginLeft: 12,
+  },
   motoStatus: {
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 10,
     fontSize: 12,
     fontWeight: 'bold',
+    color: '#ffffff',
+    marginLeft: 4,
   },
-   statusProntas: {
-    backgroundColor: '#D4EDDA',
-    color: '#155724',
+  statusProntas: {
+    backgroundColor: '#10B981',
   },
   statusDanoLeve: {
-    backgroundColor: '#FFF3CD',
-    color: '#856404',
+    backgroundColor: '#F59E0B',
   },
   statusDanoGrave: {
-    backgroundColor: '#F8D7DA',
-    color: '#721C24',
+    backgroundColor: '#EF4444',
   },
-  detailText: {
-    fontSize: 16,
-    marginBottom: 5,
+  detailRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
   },
   detailLabel: {
-    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#6B7280',
+    width: 80,
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#1F2937',
+    flex: 1,
   },
   notesTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 5,
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 20,
+    marginBottom: 8,
   },
-   notesContainer: {
-     backgroundColor: '#f9f9f9',
-     borderRadius: 5,
-     padding: 10,
-     marginBottom: 15,
-   },
+  notesContainer: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+  },
   notesText: {
     fontSize: 14,
-    color: 'gray',
+    color: '#6B7280',
+    lineHeight: 20,
+  },
+  createdByContainer: {
+    marginBottom: 16,
   },
   createdBy: {
-     fontSize: 12,
-     color: 'gray',
-     marginTop: 10,
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
   },
-   createdByEmail: {
-     fontSize: 14,
-     marginBottom: 5,
-   },
+  createdByRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  createdByEmail: {
+    fontSize: 14,
+    color: '#1F2937',
+  },
+  lastUpdatedContainer: {
+    marginBottom: 8,
+  },
   lastUpdated: {
-    fontSize: 12,
-    color: 'gray',
-    marginTop: 5,
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 4,
   },
   lastUpdatedDate: {
     fontSize: 14,
+    color: '#1F2937',
   },
   editButton: {
-    backgroundColor: '#007BFF',
-    padding: 15,
-    borderRadius: 5,
+    backgroundColor: '#3B82F6',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 10,
+    marginHorizontal: 20,
+    marginBottom: 12,
   },
   editButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   deleteButton: {
-    backgroundColor: '#DC3545',
-    padding: 15,
-    borderRadius: 5,
+    backgroundColor: '#ffffff',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#EF4444',
   },
   deleteButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#EF4444',
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalContainer: {
     position: 'absolute',
@@ -220,56 +314,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
     alignItems: 'center',
     marginHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-   modalIcon: {
-     marginBottom: 10,
-   },
+  modalIcon: {
+    marginBottom: 16,
+  },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    color: '#1F2937',
+    marginBottom: 12,
     textAlign: 'center',
   },
   modalMessage: {
-    fontSize: 16,
-    color: 'gray',
+    fontSize: 14,
+    color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    lineHeight: 20,
   },
   modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     width: '100%',
   },
-   modalCancelButton: {
-     padding: 10,
-     borderRadius: 5,
-     minWidth: 100,
-     alignItems: 'center',
-     borderColor: '#ccc',
-     borderWidth: 1,
-   },
-   modalDeleteButton: {
-     backgroundColor: '#DC3545',
-     padding: 10,
-     borderRadius: 5,
-     minWidth: 100,
-     alignItems: 'center',
-     marginLeft: 10,
-   },
-   modalButtonText: {
-     fontSize: 16,
-     fontWeight: 'bold',
-     color: '#000',
-   },
-   modalDeleteButtonText: {
-     color: '#fff',
-   },
+  modalDeleteButton: {
+    backgroundColor: '#EF4444',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  modalDeleteButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalCancelButton: {
+    backgroundColor: '#ffffff',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    marginLeft: 8,
+  },
+  modalCancelButtonText: {
+    color: '#6B7280',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
 
 export default MotoDetailsScreen; 

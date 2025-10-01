@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { Feather, AntDesign } from '@expo/vector-icons';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert, SafeAreaView, StatusBar, ScrollView } from 'react-native';
+import { Feather, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { userService } from '../services/api';
 import { userListStorage } from '../services/storage';
 import { syncUsers, syncUser } from '../services/syncService';
-import { SyncStatus } from '../components';
+import { useTheme } from '../contexts/ThemeContext';
+import { ModernCard, AnimatedCard, GradientBackground, StatusBadge } from '../components';
 import LoadingSpinner from '../components/LoadingSpinner';
+import useResponsive from '../hooks/useResponsive';
 
 const usersData = [
   { id: '1', name: 'Alex Silva', email: 'alex.silva@email.com', cpf: '123.456.789-00', phone: '(11) 91234-5678', filial: 'Butantã-1', status: 'Ativo', role: 'Usuário' },
@@ -19,11 +22,25 @@ const UserScreen = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  
+  const theme = useTheme();
+  const { responsiveSize, responsiveFontSize, getPadding } = useResponsive();
 
   // Carregar usuários ao montar o componente
   useEffect(() => {
     loadUsers();
   }, []);
+
+  // Controlar o toast de sucesso
+  useEffect(() => {
+    if (showSuccessToast) {
+      const timer = setTimeout(() => {
+        setShowSuccessToast(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessToast]);
 
   // Recarregar usuários quando a tela ganha foco
   useFocusEffect(
@@ -84,76 +101,79 @@ const UserScreen = ({ navigation }) => {
     );
   };
 
-  const renderUserItem = ({ item }) => (
-    <View style={styles.userItem}>
-      {/* User Icon Placeholder */}
-      <View style={styles.userIconPlaceholder}>
-        <Feather name="user" size={30} color="gray" />
-      </View>
-      <View style={styles.userInfo}>
-        <Text style={styles.userName}>{item.name}</Text>
-        <Text style={styles.userContact}>{item.email}</Text>
-        <Text style={styles.userContact}>CPF: {item.cpf}</Text>
-        <Text style={styles.userContact}>{item.phone}</Text>
-        <Text style={styles.userContact}>Filial: {item.filial}</Text>
-      </View>
-      <View style={styles.userActions}>
-         <View style={styles.statusRoleContainer}>
-            {item.status === 'Ativo' && <Text style={[styles.statusBadge, styles.statusAtivo]}>{item.status}</Text>}
-            {item.status === 'Pendente' && <Text style={[styles.statusBadge, styles.statusPendente]}>{item.status}</Text>}
-             {item.role === 'Admin' && <Text style={[styles.statusBadge, styles.roleAdmin]}>{item.role}</Text>}
-         </View>
-        <View style={styles.userActions}>
-          <TouchableOpacity 
-            style={styles.editButton} 
-            onPress={() => navigation.navigate('EditUser', { user: item })}
-          >
-            <Text style={styles.editButtonText}>Editar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.deleteButton} 
-            onPress={() => handleDeleteUser(item.id)}
-          >
-            <Feather name="trash-2" size={16} color="#dc3545" />
-          </TouchableOpacity>
+  const renderUserItem = ({ item, index }) => (
+    <View style={styles.userCard}>
+      <View style={styles.userHeader}>
+        <View style={styles.userAvatar}>
+          <MaterialCommunityIcons name="account" size={24} color="#000000" />
         </View>
+        <View style={styles.userInfo}>
+          <View style={styles.nameRow}>
+            <Text style={styles.userName}>{item.name}</Text>
+            <View style={styles.badgesContainer}>
+              <View style={[styles.statusBadge, { backgroundColor: item.status === 'Ativo' ? '#E5E7EB' : '#FEF3C7' }]}>
+                <Text style={styles.badgeText}>{item.status}</Text>
+              </View>
+              {item.role === 'Admin' && (
+                <View style={[styles.statusBadge, { backgroundColor: '#E5E7EB' }]}>
+                  <Text style={styles.badgeText}>{item.role}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+          <Text style={styles.userEmail}>{item.email}</Text>
+          <Text style={styles.userCpf}>CPF: {item.cpf}</Text>
+          <Text style={styles.userPhone}>{item.phone}</Text>
+          <Text style={styles.userFilial}>Filial: {item.filial}</Text>
+        </View>
+        <TouchableOpacity 
+          style={styles.editButton} 
+          onPress={() => navigation.navigate('EditUser', { user: item })}
+        >
+          <Text style={styles.editButtonText}>Editar</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={24} color="black" />
+      <StatusBar barStyle="light-content" backgroundColor="#6B7280" />
+      
+      {/* Header Superior */}
+      <View style={styles.topHeader}>
+        <Text style={styles.topHeaderText}>Usuários da filial</Text>
+      </View>
+
+      {/* Header Principal */}
+      <View style={styles.mainHeader}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Feather name="arrow-left" size={24} color="#000000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Usuários da filial</Text>
-         <Feather name="search" size={24} color="black" />{/* Search Icon in Header */}
+        <TouchableOpacity style={styles.searchButton}>
+          <Feather name="search" size={24} color="#000000" />
+        </TouchableOpacity>
       </View>
 
-      {/* Search Bar below Header */}
-      <View style={styles.searchBarContainer}>
-        <Feather name="search" size={20} color="gray" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Pesquisar"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
+      {/* Barra de Pesquisa */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputContainer}>
+          <Feather name="search" size={20} color="#6B7280" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Pesquisar"
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
       </View>
 
-      {/* Sync Status */}
-      <SyncStatus 
-        onSync={(result) => {
-          if (result.success) {
-            loadUsers(); // Recarregar usuários após sincronização
-          }
-        }}
-        style={styles.syncStatus}
-      />
-
-      {/* User List */}
+      {/* Lista de Usuários */}
       <FlatList
         data={users}
         renderItem={renderUserItem}
@@ -161,6 +181,7 @@ const UserScreen = ({ navigation }) => {
         contentContainerStyle={styles.listContent}
         refreshing={refreshing}
         onRefresh={handleRefresh}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>Nenhum usuário encontrado</Text>
@@ -168,10 +189,24 @@ const UserScreen = ({ navigation }) => {
         }
       />
 
-      {/* Add User Button */}
-      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddUser')}>
-        <AntDesign name="plus" size={24} color="white" />
+      {/* Botão Adicionar Usuário */}
+      <TouchableOpacity 
+        style={styles.addButton} 
+        onPress={() => {
+          setShowSuccessToast(true);
+          navigation.navigate('AddUser');
+        }}
+      >
+        <AntDesign name="plus" size={24} color="#ffffff" />
       </TouchableOpacity>
+
+      {/* Success Toast */}
+      {showSuccessToast && (
+        <View style={styles.successToast}>
+          <Feather name="check" size={20} color="#ffffff" />
+          <Text style={styles.successToastText}>Usuário registrado com sucesso!</Text>
+        </View>
+      )}
 
       <LoadingSpinner visible={loading} message="Carregando usuários..." />
     </View>
@@ -181,124 +216,193 @@ const UserScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    padding: 10,
+    backgroundColor: '#F9FAFB',
   },
-  header: {
+  topHeader: {
+    backgroundColor: '#6B7280',
+    paddingTop: 50,
+    paddingBottom: 10,
+    paddingHorizontal: 20,
+  },
+  topHeaderText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  mainHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingTop: 10,
-    marginBottom: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  backButton: {
+    padding: 8,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#000000',
   },
-  searchBarContainer: {
+  searchButton: {
+    padding: 8,
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#ffffff',
+  },
+  searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 10,
-    marginHorizontal: 10,
-    borderColor: '#ccc',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-   searchIcon: {
-     marginRight: 10,
-   },
   searchInput: {
     flex: 1,
-    height: 40,
+    fontSize: 16,
+    color: '#1F2937',
+    marginLeft: 8,
   },
   listContent: {
-    paddingBottom: 80,
+    paddingHorizontal: 20,
+    paddingBottom: 100,
   },
-  userItem: {
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+  userCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  userHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
-  userIconPlaceholder: {
+  userAvatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#E5E7EB',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 16,
   },
   userInfo: {
     flex: 1,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   userName: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 2,
+    color: '#1F2937',
+    marginRight: 8,
   },
-  userContact: {
-    fontSize: 14,
-    color: 'gray',
-  },
-  userActions: {
-    alignItems: 'flex-end',
-  },
-   statusRoleContainer: {
-     flexDirection: 'row',
-     marginBottom: 5,
-   },
-  statusBadge: {
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 10,
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
-  statusAtivo: {
-    backgroundColor: '#D4EDDA',
-    color: '#155724',
-  },
-  statusPendente: {
-    backgroundColor: '#FFF3CD',
-    color: '#856404',
-  },
-  roleAdmin: {
-     backgroundColor: '#007BFF',
-     color: '#fff',
-   },
-  editButton: {
-    marginTop: 5,
-  },
-  editButtonText: {
-    color: '#007BFF',
-    fontSize: 14,
-  },
-   addButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#007BFF',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  userActions: {
+  badgesContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  deleteButton: {
-    padding: 5,
-    marginLeft: 10,
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 6,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  userCpf: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  userPhone: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+  userFilial: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  editButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  editButtonText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  addButton: {
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  successToast: {
+    position: 'absolute',
+    bottom: 150,
+    left: 20,
+    right: 20,
+    backgroundColor: '#374151',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  successToastText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   emptyContainer: {
     flex: 1,
@@ -308,12 +412,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: 'gray',
+    color: '#6B7280',
     textAlign: 'center',
-  },
-  syncStatus: {
-    marginHorizontal: 10,
-    marginBottom: 10,
   },
 });
 

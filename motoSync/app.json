@@ -1,29 +1,56 @@
 {
   "expo": {
-    "name": "motoSync",
-    "slug": "motoSync",
-    "version": "1.0.0",
+    "name": "MotoSync 2.0",
+    "slug": "motosync-2-0",
+    "version": "3.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "description": "Sistema de gestão de frotas de motocicletas para Mottu",
+    "keywords": ["mottu", "motos", "gestão", "frota", "mobile"],
+    "privacy": "public",
+    "platforms": ["ios", "android", "web"],
+    "githubUrl": "https://github.com/seu-usuario/motosync2.0",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#667eea"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mottu.motosync",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Este app precisa acessar a câmera para fotografar motos.",
+        "NSLocationWhenInUseUsageDescription": "Este app precisa acessar a localização para rastrear motos."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#667eea"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.mottu.motosync",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "seu-project-id-aqui"
+      }
+    },
+    "owner": "seu-usuario-expo"
   }
 }
