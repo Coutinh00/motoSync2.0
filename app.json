@@ -1,16 +1,26 @@
 {
   "expo": {
     "name": "MotoSync 2.0",
-    "slug": "motosync-2-0",
+    "slug": "motosync",
     "version": "3.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "description": "Sistema de gestão de frotas de motocicletas para Mottu",
-    "keywords": ["mottu", "motos", "gestão", "frota", "mobile"],
+    "keywords": [
+      "mottu",
+      "motos",
+      "gestão",
+      "frota",
+      "mobile"
+    ],
     "privacy": "public",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "githubUrl": "https://github.com/seu-usuario/motosync2.0",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -39,6 +49,9 @@
       "permissions": [
         "CAMERA",
         "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
       ]
     },
@@ -50,6 +63,12 @@
       "eas": {
         "projectId": "051321b4-c8a8-4956-a598-85618b18181c"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/051321b4-c8a8-4956-a598-85618b18181c"
     }
   }
 }
