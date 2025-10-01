@@ -95,7 +95,9 @@ exp://exp.host/@coutinh00/motosync
 
 Escaneie este QR Code com o aplicativo Expo Go para acessar a versão publicada do MotoSync 2.0:
 
-![QR Code do MotoSync 2.0](https://qr.expo.dev/exp://exp.host/@coutinh00/motosync)
+![QR Code do MotoSync 2.0](./qr-code-motosync.png)
+
+*QR Code do projeto MotoSync 2.0 - Escaneie com o Expo Go para acessar o aplicativo*
 
 ### 🚀 Status do Deploy
 

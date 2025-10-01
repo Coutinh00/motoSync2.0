@@ -1,0 +1,3 @@
+QR Code do MotoSync 2.0
+Este arquivo deve conter a imagem do QR Code gerado pelo Expo.
+Salve a imagem como "qr-code-motosync.png" no diretório raiz do projeto.
